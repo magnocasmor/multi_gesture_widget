@@ -1,0 +1,17 @@
+name: multi_gesture_widget
+description: A widget that can be dragged, scaled and rotated.
+version: 0.0.1
+author: Magno Castro Moraes <magnocasmor@gmail.com>
+homepage: https://github.com/magnocasmor
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
