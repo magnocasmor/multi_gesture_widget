@@ -9,10 +9,10 @@ class MultiGestureWidget extends StatefulWidget {
   final double maxScale;
 
   MultiGestureWidget({
-    @required this.child,
+    required this.child,
     this.minScale = 0.8,
     this.maxScale = 2.5,
-  }) : assert(minScale != null && maxScale != null);
+  });
 
   @override
   _MultiGestureWidgetState createState() => _MultiGestureWidgetState();
@@ -20,13 +20,13 @@ class MultiGestureWidget extends StatefulWidget {
 
 class _MultiGestureWidgetState extends State<MultiGestureWidget> {
   Offset offset = Offset.zero;
-  Offset lastOffset;
+  late Offset lastOffset;
 
   double scale = 1.0;
-  double lastScale;
+  late double lastScale;
 
   double angle = 0.0;
-  double lastAngle;
+  late double lastAngle;
 
   @override
   void initState() {
@@ -73,17 +73,17 @@ class _MultiGestureWidgetState extends State<MultiGestureWidget> {
 }
 
 class _MultiGestureDetector extends StatefulWidget {
-  final Widget child;
-  final void Function(Offset initialPoint) onPanStart;
-  final void Function(Offset initialPoint, Offset delta) onPanUpdate;
-  final void Function() onPanEnd;
+  final Widget? child;
+  final void Function(Offset? initialPoint)? onPanStart;
+  final void Function(Offset? initialPoint, Offset delta)? onPanUpdate;
+  final void Function()? onPanEnd;
 
-  final void Function(Offset initialFocusPoint) onScaleStart;
-  final void Function(Offset changedFocusPoint, double scale, double rotate) onScaleUpdate;
-  final void Function() onScaleEnd;
+  final void Function(Offset initialFocusPoint)? onScaleStart;
+  final void Function(Offset changedFocusPoint, double scale, double rotate)? onScaleUpdate;
+  final void Function()? onScaleEnd;
 
-  final void Function(double dx) onHorizontalDragUpdate;
-  final void Function(double dy) onVerticalDragUpdate;
+  final void Function(double dx)? onHorizontalDragUpdate;
+  final void Function(double dy)? onVerticalDragUpdate;
 
   _MultiGestureDetector({
     this.child,
@@ -103,7 +103,7 @@ class _MultiGestureDetector extends StatefulWidget {
 
 class __MultiGestureDetectorState extends State<_MultiGestureDetector> {
   final List<Touch> _touches = [];
-  double _initialScalingDistance;
+  late double _initialScalingDistance;
 
   @override
   Widget build(BuildContext context) {
@@ -118,8 +118,8 @@ class __MultiGestureDetectorState extends State<_MultiGestureDetector> {
             instance.onStart = (Offset offset) {
               final touch = Touch(
                 offset,
-                (drag, details) => _onTouchUpdate(drag, details),
-                (drag, details) => _onTouchEnd(drag, details),
+                (drag, details) => _onTouchUpdate(drag as Touch, details),
+                (drag, details) => _onTouchEnd(drag as Touch, details),
               );
               _onTouchStart(touch);
               return touch;
@@ -133,11 +133,12 @@ class __MultiGestureDetectorState extends State<_MultiGestureDetector> {
   void _onTouchStart(Touch touch) {
     _touches.add(touch);
     if (_touches.length == 1) {
-      if (widget.onPanStart != null) widget.onPanStart(touch._startOffset);
+      if (widget.onPanStart != null) widget.onPanStart!(touch._startOffset);
     } else if (_touches.length == 2) {
-      _initialScalingDistance = (_touches[0]._currentOffset - _touches[1]._currentOffset).distance;
+      _initialScalingDistance =
+          (_touches[0]._currentOffset! - _touches[1]._currentOffset!).distance;
       if (widget.onScaleStart != null)
-        widget.onScaleStart((_touches[0]._currentOffset + _touches[1]._currentOffset) / 2);
+        widget.onScaleStart!((_touches[0]._currentOffset! + _touches[1]._currentOffset!) / 2);
     } else {
       // Do nothing/ ignore
     }
@@ -146,13 +147,9 @@ class __MultiGestureDetectorState extends State<_MultiGestureDetector> {
   final _dxy = 10;
 
   double _computeRotationFactor(Touch t1, Touch t2) {
-    if (t1 == null || t2 == null) {
-      return 0.0;
-    }
+    final initialLine = t2._startOffset! - t1._startOffset!;
 
-    final initialLine = t2._startOffset - t1._startOffset;
-
-    final currentLine = t2._currentOffset - t1._currentOffset;
+    final currentLine = t2._currentOffset! - t1._currentOffset!;
 
     return math.atan2(initialLine.dx, initialLine.dy) - math.atan2(currentLine.dx, currentLine.dy);
   }
@@ -163,28 +160,28 @@ class __MultiGestureDetectorState extends State<_MultiGestureDetector> {
 
     if (_touches.length == 1) {
       if (widget.onPanUpdate != null)
-        widget.onPanUpdate(touch._startOffset, details.localPosition - touch._startOffset);
+        widget.onPanUpdate!(touch._startOffset, details.localPosition - touch._startOffset!);
 
       if (widget.onHorizontalDragUpdate != null) {
-        final dx = (details.localPosition.dx - touch._startOffset.dx).abs();
+        final dx = (details.localPosition.dx - touch._startOffset!.dx).abs();
         if (dx > _dxy)
-          widget.onHorizontalDragUpdate(
-              (details.localPosition.dx - touch._startOffset.dx).clamp(-2.0, 2.0));
+          widget.onHorizontalDragUpdate!(
+              (details.localPosition.dx - touch._startOffset!.dx).clamp(-2.0, 2.0));
       }
 
       if (widget.onVerticalDragUpdate != null) {
-        final dy = (details.localPosition.dy - touch._startOffset.dy).abs();
+        final dy = (details.localPosition.dy - touch._startOffset!.dy).abs();
         if (dy > _dxy)
-          widget.onVerticalDragUpdate(
-              (details.localPosition.dy - touch._startOffset.dy).clamp(-2.0, 2.0));
+          widget.onVerticalDragUpdate!(
+              (details.localPosition.dy - touch._startOffset!.dy).clamp(-2.0, 2.0));
       }
     } else {
       // TODO average of ALL offsets, not only 2 first
-      var newDistance = (_touches[0]._currentOffset - _touches[1]._currentOffset).distance;
+      var newDistance = (_touches[0]._currentOffset! - _touches[1]._currentOffset!).distance;
 
       if (widget.onScaleUpdate != null)
-        widget.onScaleUpdate(
-            (_touches[0]._currentOffset + _touches[1]._currentOffset) / 2,
+        widget.onScaleUpdate!(
+            (_touches[0]._currentOffset! + _touches[1]._currentOffset!) / 2,
             newDistance / _initialScalingDistance,
             _computeRotationFactor(_touches[0], _touches[1]));
     }
@@ -193,20 +190,20 @@ class __MultiGestureDetectorState extends State<_MultiGestureDetector> {
   void _onTouchEnd(Touch touch, DragEndDetails details) {
     _touches.remove(touch);
     if (_touches.length == 0) {
-      if (widget.onPanEnd != null) widget.onPanEnd();
+      if (widget.onPanEnd != null) widget.onPanEnd!();
     } else if (_touches.length == 1) {
-      if (widget.onScaleEnd != null) widget.onScaleEnd();
+      if (widget.onScaleEnd != null) widget.onScaleEnd!();
 
       // Restart pan
       _touches[0]._startOffset = _touches[0]._currentOffset;
-      if (widget.onPanStart != null) widget.onPanStart(_touches[0]._startOffset);
+      if (widget.onPanStart != null) widget.onPanStart!(_touches[0]._startOffset);
     }
   }
 }
 
 class Touch extends Drag {
-  Offset _startOffset;
-  Offset _currentOffset;
+  Offset? _startOffset;
+  Offset? _currentOffset;
 
   final void Function(Drag drag, DragUpdateDetails details) onUpdate;
   final void Function(Drag drag, DragEndDetails details) onEnd;
